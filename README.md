@@ -1,4 +1,4 @@
-# goit-pythonweb-hw-10
+# goit-pythonweb-hw-12
 
 Проєкт на FastAPI, що реалізує API для керування контактами з автентифікацією, завантаженням аватарів, JWT, та використання PostgreSQL + Alembic.
 

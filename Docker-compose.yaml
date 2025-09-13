@@ -1,7 +1,7 @@
 services:
   api:
     build: .
-    container_name: goit-pythonweb-hw-10
+    container_name: goit-pythonweb-hw-12
     restart: always
     env_file:
       - .env
@@ -16,7 +16,7 @@ services:
       - database
   database:
     image: postgres
-    container_name: postgres_10
+    container_name: postgres_12
     restart: always
     env_file:
       - .env
