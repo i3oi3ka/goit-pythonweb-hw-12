@@ -1,0 +1,18 @@
+# Exclude a specific file
+.env
+
+# Exclude a directory
+node_modules/
+
+# Exclude all files with a specific extension
+*.log
+
+# Exclude a directory and its contents
+build/
+
+# Exclude everything except a specific file/directory (requires a preceding exclusion)
+__pycache__/
+*.pyc
+docker-compose.yaml
+Dockerfile
+.gitignore
