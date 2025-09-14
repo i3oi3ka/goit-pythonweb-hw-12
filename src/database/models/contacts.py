@@ -1,5 +1,6 @@
 """
-models
+SQLAlchemy ORM model for Contact entity.
+Defines fields, relationships, and validation logic for contacts.
 """
 
 from datetime import datetime, date
@@ -14,8 +15,12 @@ import re
 
 
 class Contact(Base):
-    __tablename__ = "contacts"
+    """
+    SQLAlchemy ORM model for a contact.
+    Represents a contact entity with validation for email and phone number.
+    """
 
+    __tablename__ = "contacts"
     __table_args__ = (
         UniqueConstraint("user_id", "email", name="uq_user_contact_email"),
         UniqueConstraint("user_id", "phone_number", name="uq_user_contact_phone"),
@@ -37,6 +42,16 @@ class Contact(Base):
 
     @validates("email")
     def validate_email_with_library(self, key, address):
+        """
+        Validate the email address using email_validator library.
+        Args:
+            key (str): Field name.
+            address (str): Email address to validate.
+        Returns:
+            str: Validated email address.
+        Raises:
+            ValueError: If email is not valid.
+        """
         try:
             validate_email(address)
         except EmailNotValidError as e:
@@ -45,12 +60,28 @@ class Contact(Base):
 
     @validates("phone_number")
     def validate_phone_number(self, key, value):
+        """
+        Validate the phone number format.
+        Args:
+            key (str): Field name.
+            value (str): Phone number to validate.
+        Returns:
+            str: Validated phone number.
+        Raises:
+            ValueError: If phone number format is invalid.
+        """
         if not re.match(r"^\+?\d{10,15}$", value):
             raise ValueError("Invalid phone number format.")
         return value
 
     def __repr__(self):
+        """
+        Return a string representation for debugging.
+        """
         return f"<Contact(id={self.id}, name={self.first_name} {self.last_name}, email={self.email})>"
 
     def __str__(self):
+        """
+        Return a human-readable string representation.
+        """
         return f"Contact(id={self.id}, name={self.first_name} {self.last_name}, email={self.email})"

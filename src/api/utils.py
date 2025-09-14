@@ -1,3 +1,8 @@
+"""
+Utils API routes for health checking and diagnostics.
+Uses FastAPI and SQLAlchemy async session.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
@@ -9,6 +14,15 @@ router = APIRouter(tags=["utils"])
 
 @router.get("/healthchecker/")
 async def healthchecker(db: AsyncSession = Depends(get_db)):
+    """
+    Health check endpoint to verify database connectivity.
+    Args:
+        db (AsyncSession): SQLAlchemy async session.
+    Returns:
+        dict: Welcome message if database is healthy.
+    Raises:
+        HTTPException: If database is not configured or connection fails.
+    """
     try:
         # Виконуємо асинхронний запит
         result = await db.execute(text("SELECT 1"))
@@ -25,4 +39,4 @@ async def healthchecker(db: AsyncSession = Depends(get_db)):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Error connecting to the database",
-        )
+        ) from e

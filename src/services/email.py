@@ -1,3 +1,8 @@
+"""
+Email service for sending confirmation emails using FastAPI-Mail.
+Configures mail connection and provides async send_mail function.
+"""
+
 from pathlib import Path
 
 from fastapi_mail import FastMail, MessageSchema, ConnectionConfig, MessageType
@@ -23,6 +28,17 @@ conf = ConnectionConfig(
 
 
 async def send_mail(email: EmailStr, username: str, host: str) -> None:
+    """
+    Send a confirmation email to the user with a verification token.
+    Args:
+        email (EmailStr): Recipient's email address.
+        username (str): Recipient's username.
+        host (str): Host URL for verification link.
+    Returns:
+        None
+    Raises:
+        ConnectionErrors: If email sending fails.
+    """
     try:
         token_verification = await create_email_token({"sub": email})
         message = MessageSchema(

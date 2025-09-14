@@ -1,17 +1,26 @@
+"""
+Main entry point for FastAPI application.
+Configures routers, CORS middleware, and server startup.
+"""
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import contacts, utils, auth, users
 
+# Create FastAPI app instance
 app = FastAPI()
 
+# Allowed origins for CORS
 origins = ["http://localhost:3000"]
 
+# Include API routers
 app.include_router(utils.router, prefix="/api")
 app.include_router(contacts.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 
+# Add CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -20,6 +29,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Run the app with Uvicorn if executed directly
 if __name__ == "__main__":
     import uvicorn
 

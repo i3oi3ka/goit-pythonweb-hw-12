@@ -1,3 +1,8 @@
+"""
+Authentication and authorization services for FastAPI application.
+Includes password hashing, JWT token creation, and user retrieval.
+"""
+
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
@@ -15,16 +20,43 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
 
 
 class Hash:
+    """
+    Utility class for password hashing and verification using bcrypt.
+    """
+
     pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
     async def verify_password(self, plain_password, hashed_password) -> bool:
+        """
+        Verify a plain password against a hashed password.
+        Args:
+            plain_password (str): The plain text password.
+            hashed_password (str): The hashed password.
+        Returns:
+            bool: True if passwords match, False otherwise.
+        """
         return self.pwd_context.verify(plain_password, hashed_password)
 
     async def get_password_hash(self, password: str) -> str:
+        """
+        Hash a password using bcrypt.
+        Args:
+            password (str): The plain text password.
+        Returns:
+            str: The hashed password.
+        """
         return self.pwd_context.hash(password)
 
 
 async def create_access_token(data: dict, expires_delta: int | None = None) -> str:
+    """
+    Create a JWT access token for authentication.
+    Args:
+        data (dict): Data to encode in the token.
+        expires_delta (int, optional): Expiration time in minutes.
+    Returns:
+        str: Encoded JWT token.
+    """
     to_encode = data.copy()
     if expires_delta is None:
         expires_delta = settings.JWT_EXP_MIN
@@ -39,6 +71,16 @@ async def create_access_token(data: dict, expires_delta: int | None = None) -> s
 async def get_current_user(
     token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)
 ) -> User:
+    """
+    Retrieve the current authenticated user from JWT token.
+    Args:
+        token (str): JWT token from request.
+        db (AsyncSession): SQLAlchemy async session.
+    Returns:
+        User: The authenticated user object.
+    Raises:
+        HTTPException: If credentials are invalid or user not found.
+    """
     credential_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -59,10 +101,17 @@ async def get_current_user(
     user = await user_service.get_user_by_username(username)
     if user is None:
         raise credential_exception
-    return user
+    return User.model_validate(user)
 
 
 async def create_email_token(data: dict) -> str:
+    """
+    Create a JWT token for email confirmation.
+    Args:
+        data (dict): Data to encode in the token.
+    Returns:
+        str: Encoded JWT token for email confirmation.
+    """
     to_encode = data.copy()
     expire = datetime.now(UTC) + timedelta(days=7)
     to_encode.update({"iat": datetime.now(UTC), "exp": expire})
@@ -71,6 +120,15 @@ async def create_email_token(data: dict) -> str:
 
 
 async def get_email_from_token(token: str) -> str:
+    """
+    Decode email address from JWT token.
+    Args:
+        token (str): JWT token containing email.
+    Returns:
+        str: Email address from token.
+    Raises:
+        HTTPException: If token is invalid or cannot be processed.
+    """
     try:
         payload = jwt.decode(
             token, settings.JWT_SECRET, algorithms=settings.JWT_ALGORITHM

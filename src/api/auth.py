@@ -1,9 +1,13 @@
+"""
+Authentication API routes for user registration, login, email confirmation, and email request.
+Uses FastAPI and SQLAlchemy async session.
+"""
+
 from fastapi import (
     APIRouter,
     HTTPException,
     Depends,
     status,
-    Security,
     BackgroundTasks,
     Request,
 )
@@ -26,6 +30,18 @@ async def register_user(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> User:
+    """
+    Register a new user and send a confirmation email.
+    Args:
+        user_data (UserCreate): Data for the new user.
+        background_tasks (BackgroundTasks): FastAPI background tasks manager.
+        request (Request): FastAPI request object.
+        db (AsyncSession): SQLAlchemy async session.
+    Returns:
+        User: The created user object.
+    Raises:
+        HTTPException: If username or email already exists.
+    """
     user_service = UserService(db)
     user = await user_service.get_user_by_username(user_data.username)
     if user:
@@ -43,15 +59,25 @@ async def register_user(
     user_data.password = await Hash().get_password_hash(user_data.password)
     new_user = await user_service.create_user(user_data)
     background_tasks.add_task(
-        send_mail, new_user.email, new_user.username, request.base_url
+        send_mail, new_user.email, new_user.username, str(request.base_url)
     )
-    return new_user
+    return User.model_validate(new_user)
 
 
 @router.post("/login/", response_model=Token)
 async def login_user(
     form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)
 ) -> Token:
+    """
+    Authenticate user and return JWT access token.
+    Args:
+        form_data (OAuth2PasswordRequestForm): Login form data.
+        db (AsyncSession): SQLAlchemy async session.
+    Returns:
+        Token: JWT access token and token type.
+    Raises:
+        HTTPException: If login credentials are incorrect or email not confirmed.
+    """
     user_service = UserService(db)
     user = await user_service.get_user_by_username(form_data.username)
     if not user or not await Hash().verify_password(form_data.password, user.password):
@@ -67,11 +93,21 @@ async def login_user(
         )
 
     access_token = await create_access_token(data={"sub": user.username})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return Token.model_validate({"access_token": access_token, "token_type": "bearer"})
 
 
 @router.get("/confirmed_email/{token}")
 async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
+    """
+    Confirm user's email using a token.
+    Args:
+        token (str): Email confirmation token.
+        db (AsyncSession): SQLAlchemy async session.
+    Returns:
+        dict: Confirmation message.
+    Raises:
+        HTTPException: If verification fails or user not found.
+    """
     email = await get_email_from_token(token)
     user_service = UserService(db)
     user = await user_service.get_user_by_email(email)
@@ -92,6 +128,18 @@ async def request_email(
     request: Request,
     db: AsyncSession = Depends(get_db),
 ):
+    """
+    Request a confirmation email to be sent to the user.
+    Args:
+        body (RequestEmail): Email request data.
+        background_tasks (BackgroundTasks): FastAPI background tasks manager.
+        request (Request): FastAPI request object.
+        db (AsyncSession): SQLAlchemy async session.
+    Returns:
+        dict: Message about email confirmation status.
+    Raises:
+        HTTPException: If user not found.
+    """
     user_service = UserService(db)
     user = await user_service.get_user_by_email(body.email)
 
@@ -106,6 +154,6 @@ async def request_email(
 
     if user:
         background_tasks.add_task(
-            send_mail, user.email, user.username, request.base_url
+            send_mail, user.email, user.username, str(request.base_url)
         )
     return {"message": "Check your email post"}

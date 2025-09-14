@@ -2,6 +2,9 @@ from pydantic import EmailStr, ConfigDict
 from pydantic_settings import BaseSettings
 
 
+from pydantic import SecretStr
+
+
 class Settings(BaseSettings):
     DB_URL: str
     JWT_SECRET: str
@@ -9,7 +12,7 @@ class Settings(BaseSettings):
     JWT_EXP_MIN: int = 60
 
     MAIL_USERNAME: EmailStr = "example@meta.ua"
-    MAIL_PASSWORD: str = "secretPassword"
+    MAIL_PASSWORD: SecretStr = SecretStr("secretPassword")
     MAIL_FROM: EmailStr = "example@meta.ua"
     MAIL_PORT: int = 465
     MAIL_SERVER: str = "smtp.meta.ua"
