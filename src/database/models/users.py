@@ -14,7 +14,16 @@ from src.database.models import Base
 class User(Base):
     """
     SQLAlchemy ORM model for a user.
-    Represents a user entity with authentication and profile fields.
+
+    Attributes:
+        id (int): Primary key.
+        username (str): Unique username.
+        email (str): Unique email address.
+        password (str): Hashed password.
+        confirmed (bool): Email confirmation status.
+        avatar (str): Avatar image URL or path.
+        created_at (datetime): Timestamp of user creation.
+        contacts (list[Contact]): List of user's contacts.
     """
 
     __tablename__ = "users"

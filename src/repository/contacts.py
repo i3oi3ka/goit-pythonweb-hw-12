@@ -17,8 +17,11 @@ class ContactRepository:
     def __init__(self, session: AsyncSession):
         """
         Initialize the repository with a database session.
-        Args:
-            session (AsyncSession): SQLAlchemy async session.
+
+        Parameters
+        ----------
+        session : AsyncSession
+            SQLAlchemy async session.
         """
         self.db = session
 
@@ -27,13 +30,22 @@ class ContactRepository:
     ) -> List[Contact]:
         """
         Retrieve a list of contacts for a user with optional filters and pagination.
-        Args:
-            skip (int): Number of records to skip.
-            limit (int): Maximum number of records to return.
-            params (dict): Filter parameters for contacts.
-            user (User): The user whose contacts to retrieve.
-        Returns:
-            List[Contact]: List of Contact objects.
+
+        Parameters
+        ----------
+        skip : int
+            Number of records to skip.
+        limit : int
+            Maximum number of records to return.
+        params : dict
+            Filter parameters for contacts.
+        user : User
+            The user whose contacts to retrieve.
+
+        Returns
+        -------
+        list of Contact
+            List of Contact objects.
         """
         stmt = select(Contact).filter_by(**params, user=user).offset(skip).limit(limit)
         contacts = await self.db.execute(stmt)
@@ -42,11 +54,18 @@ class ContactRepository:
     async def get_contact_by_id(self, contact_id: int, user: User) -> Contact | None:
         """
         Get a contact by its ID for a specific user.
-        Args:
-            contact_id (int): The contact's ID.
-            user (User): The user who owns the contact.
-        Returns:
-            Contact | None: The Contact object or None if not found.
+
+        Parameters
+        ----------
+        contact_id : int
+            The contact's ID.
+        user : User
+            The user who owns the contact.
+
+        Returns
+        -------
+        Contact or None
+            The Contact object or None if not found.
         """
         stmt = select(Contact).filter_by(id=contact_id, user=user)
         contact = await self.db.execute(stmt)
@@ -55,11 +74,18 @@ class ContactRepository:
     async def get_contacts_by_filter(self, query: dict, user: User) -> Contact | None:
         """
         Get a contact by filter parameters for a specific user.
-        Args:
-            query (dict): Filter parameters.
-            user (User): The user who owns the contact.
-        Returns:
-            Contact | None: The Contact object or None if not found.
+
+        Parameters
+        ----------
+        query : dict
+            Filter parameters.
+        user : User
+            The user who owns the contact.
+
+        Returns
+        -------
+        Contact or None
+            The Contact object or None if not found.
         """
         stmt = select(Contact).filter_by(**query, user=user)
         contact = await self.db.execute(stmt)
@@ -68,11 +94,18 @@ class ContactRepository:
     async def check_contact_duplicate(self, body: ContactModel, user: User) -> bool:
         """
         Check if a contact with the same email or phone number exists for the user.
-        Args:
-            body (ContactModel): Contact data to check.
-            user (User): The user to check for duplicates.
-        Returns:
-            bool: True if duplicate exists, False otherwise.
+
+        Parameters
+        ----------
+        body : ContactModel
+            Contact data to check.
+        user : User
+            The user to check for duplicates.
+
+        Returns
+        -------
+        bool
+            True if duplicate exists, False otherwise.
         """
         stmt = (
             select(Contact)
@@ -89,13 +122,23 @@ class ContactRepository:
     async def create_contact(self, body: ContactModel, user: User) -> Contact:
         """
         Create a new contact for the user.
-        Args:
-            body (ContactModel): Data for the new contact.
-            user (User): The user to associate the contact with.
-        Returns:
-            Contact: The created Contact object.
-        Raises:
-            ValueError: If a duplicate contact exists.
+
+        Parameters
+        ----------
+        body : ContactModel
+            Data for the new contact.
+        user : User
+            The user to associate the contact with.
+
+        Returns
+        -------
+        Contact
+            The created Contact object.
+
+        Raises
+        ------
+        ValueError
+            If a duplicate contact exists.
         """
         if await self.check_contact_duplicate(body, user):
             raise ValueError("Contact with this email or phone number already exists.")
@@ -109,11 +152,18 @@ class ContactRepository:
     async def remove_contact(self, contact_id: int, user: User) -> Contact | None:
         """
         Remove a contact by its ID for a specific user.
-        Args:
-            contact_id (int): The contact's ID.
-            user (User): The user who owns the contact.
-        Returns:
-            Contact | None: The removed Contact object or None if not found.
+
+        Parameters
+        ----------
+        contact_id : int
+            The contact's ID.
+        user : User
+            The user who owns the contact.
+
+        Returns
+        -------
+        Contact or None
+            The removed Contact object or None if not found.
         """
         contact = await self.get_contact_by_id(contact_id, user)
         if contact:
@@ -126,12 +176,20 @@ class ContactRepository:
     ) -> Contact | None:
         """
         Update an existing contact for a user.
-        Args:
-            note_id (int): The contact's ID.
-            body (ContactModel): Updated contact data.
-            user (User): The user who owns the contact.
-        Returns:
-            Contact | None: The updated Contact object or None if not found.
+
+        Parameters
+        ----------
+        note_id : int
+            The contact's ID.
+        body : ContactModel
+            Updated contact data.
+        user : User
+            The user who owns the contact.
+
+        Returns
+        -------
+        Contact or None
+            The updated Contact object or None if not found.
         """
         contact = await self.get_contact_by_id(note_id, user)
         if contact:
@@ -146,10 +204,16 @@ class ContactRepository:
     async def get_contacts_with_upcoming_birthdays(self, user: User) -> List[Contact]:
         """
         Get contacts with birthdays in the next 7 days for a user.
-        Args:
-            user (User): The user whose contacts to check.
-        Returns:
-            List[Contact]: List of contacts with upcoming birthdays.
+
+        Parameters
+        ----------
+        user : User
+            The user whose contacts to check.
+
+        Returns
+        -------
+        list of Contact
+            List of contacts with upcoming birthdays.
         """
         today = date.today()
         future_date = today + timedelta(days=7)

@@ -1,13 +1,20 @@
-from pydantic import EmailStr, ConfigDict
-from pydantic_settings import BaseSettings
+"""
+Configuration settings for the FastAPI application using Pydantic BaseSettings.
 
+Loads environment variables from .env file and provides default values for local development and documentation builds.
+"""
 
-from pydantic import SecretStr
+from pydantic import EmailStr, SecretStr
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    DB_URL: str
-    JWT_SECRET: str
+    """
+    Application settings loaded from environment variables or .env file.
+    """
+
+    DB_URL: str = "sqlite+aiosqlite:///./test.db"
+    JWT_SECRET: str = "your_jwt_secret"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXP_MIN: int = 60
 
@@ -22,12 +29,15 @@ class Settings(BaseSettings):
     USE_CREDENTIALS: bool = True
     VALIDATE_CERTS: bool = True
 
-    CLD_NAME: str
-    CLD_API_KEY: int
-    CLD_API_SECRET: str
+    CLD_NAME: str = "your_cloud_name"
+    CLD_API_KEY: int = 123456789
+    CLD_API_SECRET: str = "your_cloud_api_secret"
 
-    model_config = ConfigDict(
-        extra="ignore", env_file=".env", env_file_encoding="utf-8", case_sensitive=True
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        extra="ignore",
+        case_sensitive=True,
     )
 
 
