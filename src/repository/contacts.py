@@ -158,17 +158,12 @@ class ContactRepository:
         """
         Remove a contact by its ID for a specific user.
 
-        Parameters
-        ----------
-        contact_id : int
-            The contact's ID.
-        user : User
-            The user who owns the contact.
+        Args:
+            contact_id (int): The contact's ID.
+            user (User): The user who owns the contact.
 
-        Returns
-        -------
-        Contact or None
-            The removed Contact object or None if not found.
+        Returns:
+            Contact or None: The removed Contact object or None if not found.
         """
         contact = await self.get_contact_by_id(contact_id, user)
         if contact:
@@ -177,26 +172,20 @@ class ContactRepository:
         return contact
 
     async def update_contact(
-        self, note_id: int, body: ContactModel, user: User
+        self, contact_id: int, body: ContactModel, user: User
     ) -> Contact | None:
         """
         Update an existing contact for a user.
 
-        Parameters
-        ----------
-        note_id : int
-            The contact's ID.
-        body : ContactModel
-            Updated contact data.
-        user : User
-            The user who owns the contact.
+        Args:
+            contact_id (int): The contact's ID.
+            body (ContactModel): Updated contact data.
+            user (User): The user who owns the contact.
 
-        Returns
-        -------
-        Contact or None
-            The updated Contact object or None if not found.
+        Returns:
+            Contact or None: The updated Contact object or None if not found.
         """
-        contact = await self.get_contact_by_id(note_id, user)
+        contact = await self.get_contact_by_id(contact_id, user)
         print(body)
         if contact:
             for key, value in body.model_dump(exclude_unset=True).items():
@@ -211,15 +200,11 @@ class ContactRepository:
         """
         Get contacts with birthdays in the next 7 days for a user.
 
-        Parameters
-        ----------
-        user : User
-            The user whose contacts to check.
+        Args:
+        user (User): The user whose contacts to check.
 
-        Returns
-        -------
-        list of Contact
-            List of contacts with upcoming birthdays.
+        Returns:
+            List[Contact]: List of contacts with upcoming birthdays.
         """
         today = date.today()
         future_date = today + timedelta(days=7)

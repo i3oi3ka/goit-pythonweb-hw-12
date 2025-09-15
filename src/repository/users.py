@@ -15,10 +15,8 @@ class UserRepository:
         """
         Initialize the repository with a database session.
 
-        Parameters
-        ----------
-        session : AsyncSession
-            SQLAlchemy async session.
+        Args:
+            session (AsyncSession): SQLAlchemy async session.
         """
         self.db = session
 
@@ -26,15 +24,11 @@ class UserRepository:
         """
         Retrieve a user by their ID.
 
-        Parameters
-        ----------
-        user_id : int
-            The user's ID.
+        Args:
+            user_id (int): The user's ID.
 
-        Returns
-        -------
-        User or None
-            The User object or None if not found.
+        Returns:
+            User or None: The User object or None if not found.
         """
         stmt = select(User).filter_by(id=user_id)
         user = await self.db.execute(stmt)
@@ -44,12 +38,11 @@ class UserRepository:
         """
         Retrieve a user by their username.
 
-        Parameters
-        ----------
-        username : str
-            The user's username.
+        Args:
+            username (str): The user's username.
 
-        Returns
+        Returns:
+            User or None: The User object or None if not found.
         -------
         User or None
             The User object or None if not found.
@@ -62,15 +55,11 @@ class UserRepository:
         """
         Retrieve a user by their email address.
 
-        Parameters
-        ----------
-        email : str
-            The user's email address.
+        Args:
+            email (str): The user's email address.
 
-        Returns
-        -------
-        User or None
-            The User object or None if not found.
+        Returns:
+            User or None: The User object or None if not found.
         """
         stmt = select(User).filter_by(email=email)
         user = await self.db.execute(stmt)
@@ -80,17 +69,12 @@ class UserRepository:
         """
         Create a new user in the database.
 
-        Parameters
-        ----------
-        body : UserCreate
-            Data for the new user.
-        avatar : str, optional
-            URL or path to the user's avatar image.
+        Args:
+            body (UserCreate): Data for the new user.
+            avatar (str, optional): URL or path to the user's avatar image.
 
-        Returns
-        -------
-        User
-            The created User object.
+        Returns:
+            User: The created User object.
         """
         user = User(**body.model_dump(exclude_unset=True), avatar=avatar)
         self.db.add(user)
@@ -102,13 +86,11 @@ class UserRepository:
         """
         Mark a user's email as confirmed.
 
-        Parameters
-        ----------
-        email : str
-            The user's email address.
+        Args:
+            email (str): The user's email address.
 
-        Returns
-        -------
+        Returns:
+            None
         None
         """
         user = await self.get_user_by_email(email)
@@ -120,17 +102,12 @@ class UserRepository:
         """
         Update the avatar URL for a user.
 
-        Parameters
-        ----------
-        email : str
-            The user's email address.
-        url : str
-            The new avatar URL.
+        Args:
+            email (str): The user's email address.
+            url (str): The new avatar URL.
 
-        Returns
-        -------
-        User or None
-            The updated User object or None if user not found.
+        Returns:
+            User or None: The updated User object or None if user not found.
         """
         user = await self.get_user_by_email(email)
         if user is not None:
