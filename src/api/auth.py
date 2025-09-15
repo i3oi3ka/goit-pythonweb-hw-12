@@ -111,7 +111,7 @@ async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
     email = await get_email_from_token(token)
     user_service = UserService(db)
     user = await user_service.get_user_by_email(email)
-    if user is None:
+    if user is None or email is None:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Verification error"
         )
@@ -121,7 +121,7 @@ async def confirmed_email(token: str, db: AsyncSession = Depends(get_db)):
     return {"message": "Email success confirmed"}
 
 
-@router.get("/request_email/")
+@router.post("/request_email/")
 async def request_email(
     body: RequestEmail,
     background_tasks: BackgroundTasks,

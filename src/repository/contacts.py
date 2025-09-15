@@ -47,7 +47,12 @@ class ContactRepository:
         list of Contact
             List of Contact objects.
         """
-        stmt = select(Contact).filter_by(**params, user=user).offset(skip).limit(limit)
+        stmt = (
+            select(Contact)
+            .filter_by(**params, user_id=user.id)
+            .offset(skip)
+            .limit(limit)
+        )
         contacts = await self.db.execute(stmt)
         return list(contacts.scalars().all())
 
@@ -67,7 +72,7 @@ class ContactRepository:
         Contact or None
             The Contact object or None if not found.
         """
-        stmt = select(Contact).filter_by(id=contact_id, user=user)
+        stmt = select(Contact).filter_by(id=contact_id, user_id=user.id)
         contact = await self.db.execute(stmt)
         return contact.scalar_one_or_none()
 
@@ -87,7 +92,7 @@ class ContactRepository:
         Contact or None
             The Contact object or None if not found.
         """
-        stmt = select(Contact).filter_by(**query, user=user)
+        stmt = select(Contact).filter_by(**query, user_id=user.id)
         contact = await self.db.execute(stmt)
         return contact.scalar_one_or_none()
 
@@ -109,7 +114,7 @@ class ContactRepository:
         """
         stmt = (
             select(Contact)
-            .filter_by(user=user)
+            .filter_by(user_id=user.id)
             .where(
                 (Contact.email == body.email)
                 | (Contact.phone_number == body.phone_number)
@@ -143,7 +148,7 @@ class ContactRepository:
         if await self.check_contact_duplicate(body, user):
             raise ValueError("Contact with this email or phone number already exists.")
 
-        contact = Contact(**body.model_dump(exclude_unset=True), user=user)
+        contact = Contact(**body.model_dump(exclude_unset=True), user_id=user.id)
         self.db.add(contact)
         await self.db.commit()
         await self.db.refresh(contact)
@@ -192,6 +197,7 @@ class ContactRepository:
             The updated Contact object or None if not found.
         """
         contact = await self.get_contact_by_id(note_id, user)
+        print(body)
         if contact:
             for key, value in body.model_dump(exclude_unset=True).items():
                 setattr(contact, key, value)
@@ -219,7 +225,7 @@ class ContactRepository:
         future_date = today + timedelta(days=7)
         stmt = (
             select(Contact)
-            .filter_by(user=user)
+            .filter_by(user_id=user.id)
             .filter(
                 and_(
                     extract("month", Contact.birthday) >= today.month,
