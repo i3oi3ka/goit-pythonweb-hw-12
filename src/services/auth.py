@@ -3,6 +3,8 @@ Authentication and authorization services for FastAPI application.
 Includes password hashing, JWT token creation, and user retrieval.
 """
 
+import redis
+import pickle
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
@@ -17,6 +19,7 @@ from src.schemas.users import User
 from src.services.users import UserService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+redis_client = redis.Redis(host="redis_hw12", port=6379)
 
 
 class Hash:
@@ -97,10 +100,16 @@ async def get_current_user(
     except JWTError as e:
         raise credential_exception
 
-    user_service = UserService(db)
-    user = await user_service.get_user_by_username(username)
+    user_redis_key = f"username:{username}"
+    user = redis_client.get(user_redis_key)
     if user is None:
-        raise credential_exception
+        user_service = UserService(db)
+        user = await user_service.get_user_by_username(username)
+        if user is None:
+            raise credential_exception
+        redis_client.set(user_redis_key, pickle.dumps(user), ex=600)
+    else:
+        user = pickle.loads(user)
     return User.model_validate(user)
 
 
