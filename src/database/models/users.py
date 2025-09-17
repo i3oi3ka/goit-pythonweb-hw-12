@@ -3,10 +3,17 @@ SQLAlchemy ORM model for User entity.
 Defines fields, relationships, and user attributes.
 """
 
-from sqlalchemy import Integer, String, Boolean, DateTime, func
+import enum
+from sqlalchemy import Integer, String, Boolean, DateTime, Enum, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.database.models import Base
+
+
+class Role(enum.Enum):
+    admin: str = "admin"
+    moderator: str = "moderator"
+    user: str = "user"
 
 
 class User(Base):
@@ -33,5 +40,6 @@ class User(Base):
     confirmed: Mapped[bool] = mapped_column(Boolean, default=False)
     avatar: Mapped[str] = mapped_column(String, nullable=True)
     created_at: Mapped[int] = mapped_column(DateTime, default=func.now())
+    roles: Mapped[Role] = mapped_column(Enum(Role, name="role_enum"), default=Role.user)
 
     contacts = relationship("Contact", back_populates="user", cascade="all, delete")
