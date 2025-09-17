@@ -36,10 +36,10 @@ services:
       - database
   redis:
     image: redis:alpine
-    container_name: redis_hw12
+    container_name: ${REDIS_HOST}
     restart: always
     ports:
-      - "6379:6379"
+      - "6379:${REDIS_PORT}"
 
 volumes:
   db_data:

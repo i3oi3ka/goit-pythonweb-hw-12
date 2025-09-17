@@ -3,7 +3,6 @@ Authentication and authorization services for FastAPI application.
 Includes password hashing, JWT token creation, and user retrieval.
 """
 
-import redis
 import pickle
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
@@ -15,11 +14,12 @@ from datetime import datetime, timedelta, UTC
 
 from src.conf.settings import settings
 from src.database.db import get_db
+from src.database.models import Role
 from src.schemas.users import User
 from src.services.users import UserService
+from src.conf.settings import redis_client
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
-redis_client = redis.Redis(host="redis_hw12", port=6379)
 
 
 class Hash:
@@ -107,10 +107,17 @@ async def get_current_user(
         user = await user_service.get_user_by_username(username)
         if user is None:
             raise credential_exception
-        redis_client.set(user_redis_key, pickle.dumps(user), ex=600)
+        redis_client.set(user_redis_key, pickle.dumps(user), ex=60)
     else:
         user = pickle.loads(user)
+        print("redis")
     return User.model_validate(user)
+
+
+async def get_current_admin_user(current_user=Depends(get_current_user)) -> User:
+    if current_user.roles != Role.admin:
+        raise HTTPException(status_code=403, detail="Forbidden operation")
+    return current_user
 
 
 async def create_email_token(data: dict) -> str:

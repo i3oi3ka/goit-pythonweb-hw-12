@@ -7,6 +7,9 @@ Loads environment variables from .env file and provides default values for local
 from pydantic import EmailStr, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from redis import Redis
+from redis_lru import RedisLRU
+
 
 class Settings(BaseSettings):
     """
@@ -33,6 +36,9 @@ class Settings(BaseSettings):
     CLD_API_KEY: int = 123456789
     CLD_API_SECRET: str = "your_cloud_api_secret"
 
+    REDIS_HOST: str = "your_redis_host"
+    REDIS_PORT: int = 6379
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -42,3 +48,7 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
+
+
+redis_client = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, password=None)
+redis_cache = RedisLRU(redis_client)

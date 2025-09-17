@@ -8,20 +8,19 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 from sqlalchemy.ext.asyncio import AsyncSession
 
-# from src.database.models import User
-
 from src.schemas.users import User
-from src.services.auth import get_current_user
+from src.services.auth import get_current_user, get_current_admin_user
 from src.database.db import get_db
 from src.services.upload_file import UploadFileService
 from src.services.users import UserService
 from src.conf.settings import settings
-from src.services.roles import RoleAccess, Role
+
+# from src.services.roles import RoleAccess, Role
 
 router = APIRouter(tags=["Users"], prefix="/users")
 limiter = Limiter(key_func=get_remote_address)
 
-admin_only = RoleAccess([Role.moderator, Role.admin])
+# admin_only = RoleAccess([Role.moderator, Role.admin])
 
 
 @router.get(
@@ -40,10 +39,10 @@ async def me(request: Request, user: User = Depends(get_current_user)):
     return user
 
 
-@router.patch("/avatar", response_model=User, dependencies=[Depends(admin_only)])
+@router.patch("/avatar", response_model=User)
 async def update_avatar_user(
     file: UploadFile = File(...),
-    user: User = Depends(get_current_user),
+    user: User = Depends(get_current_admin_user),
     db: AsyncSession = Depends(get_db),
 ) -> User | None:
     """
@@ -55,7 +54,7 @@ async def update_avatar_user(
     Returns:
         User: The updated user profile with new avatar URL.
     Raises:
-        HTTPException: If Cloudinary authentication fails.
+        HTTPException: If Cloudinary authentication fails or Forbidden.
     """
     try:
         avatar_url = UploadFileService(
