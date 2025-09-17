@@ -11,9 +11,9 @@ from src.database.models import Base
 
 
 class Role(enum.Enum):
-    admin: str = "admin"
-    moderator: str = "moderator"
-    user: str = "user"
+    admin = "admin"
+    moderator = "moderator"
+    user = "user"
 
 
 class User(Base):

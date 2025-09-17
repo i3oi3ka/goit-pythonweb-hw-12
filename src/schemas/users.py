@@ -4,6 +4,7 @@ Defines models for user creation, response, token, and email requests.
 """
 
 from pydantic import BaseModel, ConfigDict, EmailStr
+from src.database.models import Role
 
 
 class UserCreate(BaseModel):
@@ -34,6 +35,7 @@ class User(BaseModel):
     email: EmailStr
     username: str
     avatar: str
+    roles: Role
     model_config = ConfigDict(from_attributes=True)
 
 
