@@ -14,10 +14,12 @@ from src.database.models import User
 from src.schemas.contacts import ContactModel, ContactResponse
 from src.services.contacts import ContactService
 from src.services.auth import get_current_user
+from src.conf.settings import redis_cache
 
 router = APIRouter(tags=["Contacts"], prefix="/contacts")
 
 
+@redis_cache
 @router.get("/", response_model=List[ContactResponse])
 async def read_contacts(
     first_name: str | None = None,

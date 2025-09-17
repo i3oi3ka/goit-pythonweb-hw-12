@@ -7,7 +7,7 @@ from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 
 from main import app
-from src.database.models import Base, User
+from src.database.models import Base, User, Role
 from src.database.db import get_db
 from src.services.auth import create_access_token, Hash
 
@@ -43,6 +43,7 @@ def init_models_wrap():
                 email=test_user["email"],
                 password=hash_password,
                 confirmed=True,
+                roles=Role.admin,
                 avatar="<https://twitter.com/gravatar>",
             )
             session.add(current_user)

@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     CLD_API_KEY: int = 123456789
     CLD_API_SECRET: str = "your_cloud_api_secret"
 
-    REDIS_HOST: str = "your_redis_host"
+    REDIS_HOST: str = "redis"
     REDIS_PORT: int = 6379
 
     model_config = SettingsConfigDict(
