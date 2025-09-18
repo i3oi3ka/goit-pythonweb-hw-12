@@ -1,7 +1,8 @@
 import asyncio
-
+import pickle
 import pytest
 import pytest_asyncio
+from unittest.mock import MagicMock, patch
 from fastapi.testclient import TestClient
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
@@ -73,3 +74,11 @@ def client():
 async def get_token():
     token = await create_access_token(data={"sub": test_user["username"]})
     return token
+
+
+@pytest.fixture(autouse=True)
+def mock_redis():
+    with patch("src.services.auth.redis_client", new=MagicMock()) as mock_instance:
+        mock_instance.get.return_value = None
+        mock_instance.set.return_value = True
+        yield mock_instance

@@ -30,6 +30,7 @@ def test_create_contact_invalid_email(client, get_token):
         },
         headers={"Authorization": f"Bearer {get_token}"},
     )
+
     assert response.status_code == 422
     data = response.json()
     assert any("email" in str(err["loc"]) for err in data["detail"])
