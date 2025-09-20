@@ -1,5 +1,4 @@
 import asyncio
-import pickle
 import pytest
 import pytest_asyncio
 from unittest.mock import MagicMock, patch
