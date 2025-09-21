@@ -15,7 +15,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.db import get_db
-from src.schemas.users import User, UserCreate, Token, RequestEmail
+from src.schemas.users import (
+    User,
+    UserCreate,
+    Token,
+    RequestEmail,
+    ResetPasswordRequest,
+)
 from src.services.users import UserService
 from src.services.auth import Hash, create_access_token, get_email_from_token
 from src.services.email import send_mail
@@ -157,3 +163,75 @@ async def request_email(
             send_mail, user.email, user.username, str(request.base_url)
         )
     return {"message": "Check your email post"}
+
+
+@router.post("/request_reset_password/")
+async def request_reset_password(
+    body: RequestEmail,
+    background_tasks: BackgroundTasks,
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Request a password reset email to be sent to the user.
+    Args:
+        email (str): User's email address.
+        background_tasks (BackgroundTasks): FastAPI background tasks manager.
+        request (Request): FastAPI request object.
+        db (AsyncSession): SQLAlchemy async session.
+    Returns:
+        dict: Message about password reset email status.
+    Raises:
+        HTTPException: If user not found.
+    """
+    user_service = UserService(db)
+    user = await user_service.get_user_by_email(body.email)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User with this email not found, please check entered email.",
+        )
+
+    if not user.confirmed:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Email address not confirmed",
+        )
+    background_tasks.add_task(
+        send_mail,
+        user.email,
+        user.username,
+        str(request.base_url),
+        template="reset_password_email.html",
+        subject="Reset your password",
+    )
+    return {"message": "Check your email post"}
+
+
+@router.post("/reset_password/", response_model=dict)
+async def reset_password(
+    body: ResetPasswordRequest,
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Resets the user's password using a provided token and new password.
+    Args:
+        token (str): The password reset token.
+        new_password (str): The new password to set.
+        request (Request): FastAPI request object.
+        db (AsyncSession): SQLAlchemy async session.
+    Returns:
+        dict: A message indicating the password was successfully saved.
+    Raises:
+        HTTPException: If verification fails or user not found.
+    """
+    email = await get_email_from_token(body.token)
+    user_service = UserService(db)
+    user = await user_service.get_user_by_email(email)
+    if user is None or email is None:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Verification error"
+        )
+    hashed_new_password = await Hash().get_password_hash(body.new_password)
+    await user_service.update_user_password(user, hashed_new_password)
+    return {"message": "password successfully saved"}

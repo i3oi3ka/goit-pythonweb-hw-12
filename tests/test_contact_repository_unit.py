@@ -1,3 +1,4 @@
+from unittest import result
 import pytest
 from unittest.mock import AsyncMock, MagicMock
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -98,6 +99,46 @@ async def test_create_contact(contact_repository, mock_session, user):
     mock_session.add.assert_called_once()
     mock_session.commit.assert_awaited_once()
     mock_session.refresh.assert_awaited_once_with(result)
+
+
+@pytest.mark.asyncio
+async def test_update_contact(contact_repository, mock_session, user):
+    # Setup
+    existing_contact = Contact(
+        id=200,
+        first_name="contact_to_update",
+        last_name="contact_to_update",
+        email="contact_to_update@gmail.com",
+        phone_number="380935052000",
+        birthday="1989-01-01",
+        description="test_contact_to_update",
+        user_id=user.id,
+    )
+    mock_result = MagicMock()
+    mock_result.scalar_one_or_none.return_value = existing_contact
+    mock_session.execute = AsyncMock(return_value=mock_result)
+    contact_repository.get_contact_by_id = AsyncMock(return_value=existing_contact)
+
+    contact_data = ContactModel(
+        first_name="updated_first_name",
+        last_name="updated_last_name",
+        email="updated_email@gmail.com",
+        phone_number="380935057077",
+        birthday=existing_contact.birthday,
+        description=existing_contact.description,
+    )
+
+    # Call method
+    result = await contact_repository.update_contact(
+        contact_id=existing_contact.id, body=contact_data, user=user
+    )
+
+    # Assertions
+    assert result is not None
+    assert result.first_name == "updated_first_name"
+    assert result.last_name == "updated_last_name"
+    assert result.email == "updated_email@gmail.com"
+    assert result.phone_number == "380935057077"
 
 
 @pytest.mark.asyncio

@@ -91,3 +91,6 @@ class UserService:
             User: The updated user object.
         """
         return await self.user_repository.update_avatar_url(email, url)
+
+    async def update_user_password(self, user: User, new_password: str):
+        return await self.user_repository.update_user_password(user, new_password)

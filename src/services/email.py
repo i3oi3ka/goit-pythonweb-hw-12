@@ -27,7 +27,13 @@ conf = ConnectionConfig(
 )
 
 
-async def send_mail(email: EmailStr, username: str, host: str) -> None:
+async def send_mail(
+    email: EmailStr,
+    username: str,
+    host: str,
+    template: str = "verify_email.html",
+    subject: str = "Confirm your email",
+) -> None:
     """
     Send a confirmation email to the user with a verification token.
     Args:
@@ -42,7 +48,7 @@ async def send_mail(email: EmailStr, username: str, host: str) -> None:
     try:
         token_verification = await create_email_token({"sub": email})
         message = MessageSchema(
-            subject="Confirm your email",
+            subject=subject,
             recipients=[email],
             template_body={
                 "host": host,
@@ -52,6 +58,6 @@ async def send_mail(email: EmailStr, username: str, host: str) -> None:
             subtype=MessageType.html,
         )
         fm = FastMail(conf)
-        await fm.send_message(message, template_name="verify_email.html")
+        await fm.send_message(message, template_name=template)
     except ConnectionErrors as err:
         print(err)

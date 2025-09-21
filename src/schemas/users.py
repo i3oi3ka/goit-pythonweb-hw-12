@@ -3,7 +3,7 @@ Pydantic schemas for User entity and authentication.
 Defines models for user creation, response, token, and email requests.
 """
 
-from pydantic import BaseModel, ConfigDict, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr, SecretStr
 from src.database.models import Role
 
 
@@ -59,3 +59,8 @@ class RequestEmail(BaseModel):
     """
 
     email: EmailStr
+
+
+class ResetPasswordRequest(BaseModel):
+    token: str
+    new_password: str

@@ -186,11 +186,9 @@ class ContactRepository:
             Contact or None: The updated Contact object or None if not found.
         """
         contact = await self.get_contact_by_id(contact_id, user)
-        print(body)
         if contact:
             for key, value in body.model_dump(exclude_unset=True).items():
                 setattr(contact, key, value)
-
             await self.db.commit()
             await self.db.refresh(contact)
 
