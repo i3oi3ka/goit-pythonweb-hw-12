@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.database.models import User
 from src.schemas.users import UserCreate
-from src.conf.settings import redis_client
 
 
 class UserRepository:
@@ -98,7 +97,6 @@ class UserRepository:
         if user is not None:
             user.confirmed = True
             await self.db.commit()
-            redis_client.delete(f"username:{user.username}")
 
     async def update_avatar_url(self, email: str, url: str) -> User | None:
         """
@@ -113,7 +111,6 @@ class UserRepository:
         """
         user = await self.get_user_by_email(email)
         if user is not None:
-            redis_client.delete(f"username:{user.username}")
             user.avatar = url
             await self.db.commit()
             await self.db.refresh(user)
@@ -128,5 +125,4 @@ class UserRepository:
             new_password (str): The new password.
         """
         user.password = new_password
-        redis_client.delete(f"username:{user.username}")
         await self.db.commit()

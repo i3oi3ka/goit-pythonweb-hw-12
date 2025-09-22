@@ -15,11 +15,17 @@ from datetime import datetime, timedelta, UTC
 from src.conf.settings import settings
 from src.database.db import get_db
 from src.database.models import Role
-from src.schemas.users import User
+from src.schemas.users import User, Token
 from src.services.users import UserService
 from src.conf.settings import redis_client
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/login")
+
+credential_exception = HTTPException(
+    status_code=status.HTTP_401_UNAUTHORIZED,
+    detail="Could not validate credentials",
+    headers={"WWW-Authenticate": "Bearer"},
+)
 
 
 class Hash:
@@ -64,11 +70,55 @@ async def create_access_token(data: dict, expires_delta: int | None = None) -> s
     if expires_delta is None:
         expires_delta = settings.JWT_EXP_MIN
     expire = datetime.now() + timedelta(minutes=expires_delta)
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "type": "access"})
     encode_jwt = jwt.encode(
         to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM
     )
     return encode_jwt
+
+
+async def create_refresh_token(data: dict) -> str:
+    """
+    Create a JWT refresh token for obtaining new access tokens.
+    Args:
+        data (dict): Data to encode in the token.
+    Returns:
+        str: Encoded JWT refresh token.
+    """
+    to_encode = data.copy()
+    expire = datetime.now() + timedelta(days=settings.JWT_REFRESH_EXP_DAYS)
+    to_encode.update({"exp": expire, "type": "refresh"})
+    encode_jwt = jwt.encode(
+        to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM
+    )
+    return encode_jwt
+
+
+async def create_token_pair(data: dict) -> Token:
+    access_token = await create_access_token(data=data)
+    refresh_token = await create_refresh_token(data=data)
+    return Token(
+        access_token=access_token, refresh_token=refresh_token, token_type="bearer"
+    )
+
+
+async def jwt_decode(token: str) -> dict:
+    """
+    Decode a JWT token to retrieve its payload.
+    Args:
+        token (str): The JWT token to decode.
+    Returns:
+        dict: The decoded token payload.
+    Raises:
+        HTTPException: If the token is invalid or cannot be decoded.
+    """
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
+        )
+        return payload
+    except JWTError as e:
+        raise credential_exception from e
 
 
 async def get_current_user(
@@ -84,22 +134,15 @@ async def get_current_user(
     Raises:
         HTTPException: If credentials are invalid or user not found.
     """
-    credential_exception = HTTPException(
-        status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
-        headers={"WWW-Authenticate": "Bearer"},
-    )
 
-    try:
-        payload = jwt.decode(
-            token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM]
+    payload = await jwt_decode(token)
+    if payload.get("type") != "access":
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token type",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-        username = payload.get("sub")
-        if username is None:
-            raise credential_exception
-    except JWTError as e:
-        raise credential_exception
-
+    username = payload.get("sub")
     user_redis_key = f"username:{username}"
     user = redis_client.get(user_redis_key)
     if user is None:
@@ -155,4 +198,33 @@ async def get_email_from_token(token: str) -> str:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Uncorrect token for email check",
+        )
+
+
+async def get_username_from_token_refresh(token: str) -> str:
+    """
+    Decode username from JWT refresh token.
+    Args:
+        token (str): JWT refresh token containing username.
+    Returns:
+        str: Username from token.
+    Raises:
+        HTTPException: If token is invalid or cannot be processed.
+    """
+    try:
+        payload = jwt.decode(
+            token, settings.JWT_SECRET, algorithms=settings.JWT_ALGORITHM
+        )
+        username = payload["sub"]
+        if payload.get("type") != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token type",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        return username
+    except JWTError as e:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Uncorrect token for username check",
         )

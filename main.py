@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.api import contacts, utils, auth, users
+from src.events import user_cache
 
 # Create FastAPI app instance
 app = FastAPI()

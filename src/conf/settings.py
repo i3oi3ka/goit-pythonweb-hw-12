@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     JWT_SECRET: str = "your_jwt_secret"
     JWT_ALGORITHM: str = "HS256"
     JWT_EXP_MIN: int = 60
+    JWT_REFRESH_EXP_DAYS: int = 7
 
     MAIL_USERNAME: EmailStr = "example@meta.ua"
     MAIL_PASSWORD: SecretStr = SecretStr("secretPassword")

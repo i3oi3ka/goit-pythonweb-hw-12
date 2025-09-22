@@ -19,11 +19,17 @@ from src.schemas.users import (
     User,
     UserCreate,
     Token,
+    TokenRefresh,
     RequestEmail,
     ResetPasswordRequest,
 )
 from src.services.users import UserService
-from src.services.auth import Hash, create_access_token, get_email_from_token
+from src.services.auth import (
+    Hash,
+    create_token_pair,
+    get_email_from_token,
+    get_username_from_token_refresh,
+)
 from src.services.email import send_mail
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -98,8 +104,23 @@ async def login_user(
             detail="Email address not confirmed",
         )
 
-    access_token = await create_access_token(data={"sub": user.username})
-    return Token.model_validate({"access_token": access_token, "token_type": "bearer"})
+    return await create_token_pair(data={"sub": user.username})
+
+
+@router.post("/refresh_token/")
+async def refresh_token(refresh_token: TokenRefresh):
+    """
+    Refresh access token using a refresh token.
+    Args:
+        refresh_token (str): Refresh token from request.
+    Returns:
+        Token: New access token and refresh token.
+    Raises:
+        HTTPException: If refresh token is invalid or expired.
+    """
+
+    username = await get_username_from_token_refresh(refresh_token.refresh_token)
+    return await create_token_pair(data={"sub": username})
 
 
 @router.get("/confirmed_email/{token}")
