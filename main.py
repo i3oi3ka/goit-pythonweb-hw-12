@@ -13,7 +13,7 @@ from src.events import user_cache
 app = FastAPI()
 
 # Allowed origins for CORS
-origins = ["http://localhost:3000"]
+origins = ["*"]
 
 # Include API routers
 app.include_router(utils.router, prefix="/api")
