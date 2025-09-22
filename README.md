@@ -34,8 +34,8 @@
 1. Склонуй репозиторій:
 
    ```bash
-   git clone https://github.com/i3oi3ka/goit-pythonweb-hw-10.git
-   cd goit-pythonweb-hw-10
+   git clone https://github.com/i3oi3ka/goit-pythonweb-hw-12.git
+   cd goit-pythonweb-hw-12
    ```
 
 2. Скопіюй `.env_example` у `.env` і налаштуй:
