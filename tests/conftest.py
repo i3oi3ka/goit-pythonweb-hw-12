@@ -80,4 +80,14 @@ def mock_redis():
     with patch("src.services.auth.redis_client", new=MagicMock()) as mock_instance:
         mock_instance.get.return_value = None
         mock_instance.set.return_value = True
+        mock_instance.delete.return_value = True
+        yield mock_instance
+
+
+@pytest.fixture(autouse=True)
+def mock_redis_users():
+    with patch("src.repository.users.redis_client", new=MagicMock()) as mock_instance:
+        mock_instance.get.return_value = None
+        mock_instance.set.return_value = True
+        mock_instance.delete.return_value = True
         yield mock_instance
