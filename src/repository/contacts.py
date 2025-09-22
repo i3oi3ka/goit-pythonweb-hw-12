@@ -18,8 +18,7 @@ class ContactRepository:
         """
         Initialize the repository with a database session.
 
-        Parameters
-        ----------
+        Args:
         session : AsyncSession
             SQLAlchemy async session.
         """
@@ -31,8 +30,7 @@ class ContactRepository:
         """
         Retrieve a list of contacts for a user with optional filters and pagination.
 
-        Parameters
-        ----------
+        Args:
         skip : int
             Number of records to skip.
         limit : int
@@ -43,7 +41,6 @@ class ContactRepository:
             The user whose contacts to retrieve.
 
         Returns
-        -------
         list of Contact
             List of Contact objects.
         """
@@ -60,15 +57,13 @@ class ContactRepository:
         """
         Get a contact by its ID for a specific user.
 
-        Parameters
-        ----------
+        Args:
         contact_id : int
             The contact's ID.
         user : User
             The user who owns the contact.
 
-        Returns
-        -------
+        Returns:
         Contact or None
             The Contact object or None if not found.
         """
@@ -80,15 +75,13 @@ class ContactRepository:
         """
         Get a contact by filter parameters for a specific user.
 
-        Parameters
-        ----------
+        Args:
         query : dict
             Filter parameters.
         user : User
             The user who owns the contact.
 
-        Returns
-        -------
+        Returns:
         Contact or None
             The Contact object or None if not found.
         """
@@ -100,15 +93,13 @@ class ContactRepository:
         """
         Check if a contact with the same email or phone number exists for the user.
 
-        Parameters
-        ----------
+        Args:
         body : ContactModel
             Contact data to check.
         user : User
             The user to check for duplicates.
 
-        Returns
-        -------
+        Returns:
         bool
             True if duplicate exists, False otherwise.
         """
@@ -128,20 +119,17 @@ class ContactRepository:
         """
         Create a new contact for the user.
 
-        Parameters
-        ----------
+        Args:
         body : ContactModel
             Data for the new contact.
         user : User
             The user to associate the contact with.
 
-        Returns
-        -------
+        Returns:
         Contact
             The created Contact object.
 
         Raises
-        ------
         ValueError
             If a duplicate contact exists.
         """

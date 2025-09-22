@@ -62,5 +62,13 @@ class RequestEmail(BaseModel):
 
 
 class ResetPasswordRequest(BaseModel):
+    """
+    Schema for requesting password reset.
+
+    Fields:
+        token (str): Password reset token.
+        new_password (str): New password for the user.
+    """
+
     token: str
     new_password: str
