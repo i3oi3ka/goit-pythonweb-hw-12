@@ -13,4 +13,6 @@ COPY pyproject.toml poetry.lock ./
 
 RUN poetry install --no-ansi
 
+RUN apt-get update && apt-get install -y postgresql-client
+
 COPY . .
